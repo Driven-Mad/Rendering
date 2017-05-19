@@ -1,0 +1,10 @@
+#!/bin/bash
+# Script to make easier to render
+it='/opt/pixar/RenderManStudio-20.10-maya2016/bin/it'
+
+./Assignment.py
+oslc TableWoodShader.osl
+oslc RingWoodShader.osl
+oslc StandardShader.osl
+render LloydAssignment.rib
+$it LloydAssignment.exr

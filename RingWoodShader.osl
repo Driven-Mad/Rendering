@@ -1,0 +1,50 @@
+vector faceforward (vector N, vector I)
+{
+	return (dot(I,N)>0)?-N:N;
+}
+
+color createEnvironmentReflection(string filename)
+{
+    normal Nf = faceforward (normalize(N),I);
+    vector Rcurrent=reflect(I,Nf);
+    vector Rworld=transform("world",Rcurrent);
+    
+
+	vector d=normalize(Rworld);
+	float s = atan2(d[2],d[0])/(2*M_PI);
+	if(s<0)
+		s+=1;
+	s=1-s; //Wrap clockwise from the X axis...
+
+	float t = asin(d[1]);
+	t = t/M_PI+0.5;
+	t=1-t;
+    color envmap=(color)texture(filename,s,t);
+    return envmap;
+}
+
+
+shader ring (
+                output	color Cout=1
+	        )
+{
+    float scale=1.8;
+    float freq=10;
+    float variation=0.07;
+    color Stripes=color("rgb",0.188, 0.066, 0.023);
+    color baseWood=color("rgb",0.725, 0.219, 0);
+    point PP;
+    float l;
+    PP=transform("shader",P)*scale;    
+    PP=PP+(vector)noise("uperlin",PP*freq)*variation;
+    PP=PP+(vector)noise("uperlin",PP*freq*1.1)*variation/1.1;
+    PP[1] = 0;
+    PP=PP+(vector)noise("uperlin",PP*freq)*variation;
+    PP=PP+(vector)noise("uperlin",PP*freq*1.1)*variation/1.1;
+    l=sqrt(PP[0]*PP[0]+PP[1]*PP[1]);
+
+    color finalWood =mix(Stripes,baseWood,mod(l*8,0.8));
+    color finalEnvmap = createEnvironmentReflection("envmap.tx");
+
+    Cout =  mix(finalWood, finalEnvmap,0.2);
+}

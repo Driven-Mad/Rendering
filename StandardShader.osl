@@ -1,0 +1,32 @@
+vector faceforward (vector N, vector I)
+{
+	return (dot(I,N)>0)?-N:N;
+}
+
+color createEnvironmentReflection(string filename)
+{
+    normal Nf = faceforward (normalize(N),I);
+    vector Rcurrent=reflect(I,Nf);
+    vector Rworld=transform("world",Rcurrent);
+	vector d=normalize(Rworld);
+	float s = atan2(d[2],d[0])/(2*M_PI);
+	if(s<0)
+		s+=1;
+	s=1-s; 
+	float t = asin(d[1]);
+	t = t/M_PI+0.5;
+	t =1-t;
+    color envmap=(color)texture(filename,s,t);
+    return envmap;
+}
+
+shader standard (
+					color Cin=1,
+					output	color Cout=1,
+					float reflectionAmount = 0.2
+				)
+{
+
+    color finalEnvmap = createEnvironmentReflection("envmap.tx");
+    Cout =  mix(Cin, finalEnvmap,reflectionAmount);
+}
